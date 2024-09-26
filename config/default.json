@@ -1,0 +1,10 @@
+{
+    "port": 3000,
+    "appId": 0,
+    "severKeyPath":"./server-key.pem",
+    "githubKeyPath": "./key.pem",
+    "githubOwner": "Max",
+    "githubInstallationID": 0,
+    "pathToResultFiles": "output/",
+    "websiteAddress": "http://localhost:3000/"
+}
