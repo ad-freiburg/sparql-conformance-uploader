@@ -1,21 +1,22 @@
+const config = require("config");
 // Set up file uploads
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
-const fsPromises = require('fs').promises; 
+const fsPromises = require("fs").promises; 
 const bzip2 = require("./bz2.js");
 const API_KEY = fs.readFileSync("../api-key.pem", "utf8");
 // Set up express server
 const express = require("express");
 const bodyParser = require("body-parser");
 const app = express();
-const port = 3001;
+const port = config.get("port");
 // body parser middleware
 app.use(bodyParser.json());
 
 // GitHub App configuration
-const appId = 907649; // TODO: maybe hide?
-const privateKey = fs.readFileSync("../key.pem", "utf8");
+const appId = config.get("appId");
+const privateKey = fs.readFileSync(config.get("githubKeyPath"), "utf8");
 
 // Include function to compare two test results
 const compare = require("./compare");
@@ -193,9 +194,9 @@ async function handlePullRequests(req, res) {
   // Setup GITHUB REST-API
   const { Octokit } = await import("@octokit/rest");
   const { createAppAuth } = await import("@octokit/auth-app");
-  const owner = "SIRDNARch"
+  const owner = config.get("githubOwner");
   // Authenticate as installation
-  const installationId = 51270317;
+  const installationId = config.get("githubInstallationID");
   const octokit = new Octokit({
     authStrategy: createAppAuth,
     auth: {
@@ -215,8 +216,9 @@ async function handlePullRequests(req, res) {
 
   // Compare results of the conformance test suitew of the master and new commit
   // TODO: Add try catch with error messages
-  var masterResultData = await decompressBz2(path.join(__dirname, "website", "public", "results", `${masterCommit}.json.bz2`));
-  var latestResultData = await decompressBz2(path.join(__dirname, "website", "public", "results", `${latestCommit}.json.bz2`));
+  const resultDir = config.get("pathToResultFiles");
+  var masterResultData = await decompressBz2(path.join(__dirname, resultDir, `${masterCommit}.json.bz2`));
+  var latestResultData = await decompressBz2(path.join(__dirname, resultDir, `${latestCommit}.json.bz2`));
   var resultData = compare(masterResultData, latestResultData);
 
   const event = req.headers["event"];
@@ -224,8 +226,8 @@ async function handlePullRequests(req, res) {
     const prNumber = req.headers["pr-number"];
     const repo = "qlever";
     var { commentBody, desc } = buildBodyAndDescription(resultData);
-    
-    const website = "http://localhost:3000/";
+    config.get(websiteAddress);
+    const website = config.get("websiteAddress");
     commentBody += `Details: ${website}${masterCommit}-${latestCommit}`;
 
     // Create status check
@@ -263,7 +265,7 @@ async function handlePullRequests(req, res) {
 // Storage handling
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    const uploadDir = "website/public/results/";
+    const uploadDir = config.get("pathToResultFiles");
     if (!fs.existsSync(uploadDir)){
       fs.mkdirSync(uploadDir);
     }
