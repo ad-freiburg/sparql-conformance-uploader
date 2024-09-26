@@ -2,6 +2,7 @@
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
+const bzip = require('seek-bzip');
 const API_KEY = fs.readFileSync("../api-key.pem", "utf8");
 
 // Set up express server
@@ -34,13 +35,12 @@ function setCurrentMaster(sha) {
 
 function readFile(filePath) {
   return new Promise((resolve, reject) => {
-    fs.readFile(filePath, "utf8", (err, jsonString) => {
+    fs.readFile(filePath, "utf8", (err, data) => {
         if (err) {
             reject("Error reading file: " + err);
             return;
         }
         try {
-            const data = JSON.parse(jsonString);
             resolve(data);
         } catch (err) {
             reject("Error parsing JSON string: " + err);
@@ -49,10 +49,32 @@ function readFile(filePath) {
   });
 }
 
+// Function to decompress and parse bz2 file
+async function decompressBz2(filePath) {
+  // Read the compressed file as a binary buffer
+  var compressedData = await readFile(filePath);
+  try {
+      // Decompress the bz2 data
+      const decompressedData = bzip.decode(compressedData);
+      console.log(decompressedData)
+      console.log("-----------")
+      console.log(decompressedData.toString())
+      // Convert the decompressed data to a string and parse as JSON
+      const jsonData = JSON.parse(decompressedData.toString());
+      
+      console.log("Decompressed JSON Data: ", jsonData);
+      return jsonData;
+  } catch (error) {
+      console.log("Error decompressing or parsing JSON: ", error);
+      return 0;
+  }
+}
+
 async function getCurrentMaster() {
   const filePath = path.join(__dirname, "db.json");
   var data = await readFile(filePath);
-  return data.master;
+  var json = JSON.parse(data);
+  return json.master;
 }
 
 function generateTable(results) {
@@ -186,8 +208,8 @@ async function handlePullRequests(req, res) {
 
   // Compare results of the conformance test suitew of the master and new commit
   // TODO: Add try catch with error messages
-  var masterResultData = await readFile(path.join(__dirname, "website", "public", "results", `${masterCommit}.json`));
-  var latestResultData = await readFile(path.join(__dirname, "website", "public", "results", `${latestCommit}.json`));
+  var masterResultData = await decompressBz2(path.join(__dirname, "website", "public", "results", `${masterCommit}.json.bz2`));
+  var latestResultData = await decompressBz2(path.join(__dirname, "website", "public", "results", `${latestCommit}.json.bz2`));
   var resultData = compare(masterResultData, latestResultData);
 
   const event = req.headers["event"];
