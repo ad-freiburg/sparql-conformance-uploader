@@ -2,9 +2,9 @@
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
-const bzip = require('seek-bzip');
+const fsPromises = require('fs').promises; 
+const bzip2 = require("./bz2.js");
 const API_KEY = fs.readFileSync("../api-key.pem", "utf8");
-
 // Set up express server
 const express = require("express");
 const bodyParser = require("body-parser");
@@ -33,40 +33,47 @@ function setCurrentMaster(sha) {
   });
 }
 
-function readFile(filePath) {
-  return new Promise((resolve, reject) => {
-    fs.readFile(filePath, "utf8", (err, data) => {
-        if (err) {
-            reject("Error reading file: " + err);
-            return;
-        }
-        try {
-            resolve(data);
-        } catch (err) {
-            reject("Error parsing JSON string: " + err);
-        }
-    });
-  });
+async function readFile(filePath) {
+  console.log("Reading file:", filePath);
+  try {
+    const data = await fsPromises.readFile(filePath);
+    return data;
+  } catch (err) {
+    console.error("Error reading the file:", err);
+    throw err;
+  }
 }
 
 // Function to decompress and parse bz2 file
+function decompressToString(compressedData) {
+  const compressedArray = new Uint8Array(compressedData);
+  try {
+    // Debugging: Check the first few bytes of the compressed data
+    //console.log("Compressed data header (first 10 bytes):", Array.from(compressedArray.slice(0, 10)).map(b => b.toString(16)).join(' '));
+    
+    const decompressedData = bzip2.simple(bzip2.array(compressedArray));
+    //console.log("Successfully decompressed the file!");
+    return decompressedData;
+  } catch (error) {
+    //console.error("Error decompressing the file:", error);
+    return;
+  }
+}
+
 async function decompressBz2(filePath) {
   // Read the compressed file as a binary buffer
-  var compressedData = await readFile(filePath);
+  const compressedData = await readFile(filePath);
   try {
       // Decompress the bz2 data
-      const decompressedData = bzip.decode(compressedData);
-      console.log(decompressedData)
-      console.log("-----------")
-      console.log(decompressedData.toString())
+      const decompressedData = decompressToString(compressedData);
       // Convert the decompressed data to a string and parse as JSON
-      const jsonData = JSON.parse(decompressedData.toString());
+      const jsonData = JSON.parse(decompressedData);
       
-      console.log("Decompressed JSON Data: ", jsonData);
+      //console.log("Decompressed JSON Data: ", jsonData);
       return jsonData;
   } catch (error) {
       console.log("Error decompressing or parsing JSON: ", error);
-      return 0;
+      return;
   }
 }
 
@@ -219,7 +226,7 @@ async function handlePullRequests(req, res) {
     var { commentBody, desc } = buildBodyAndDescription(resultData);
     
     const website = "http://localhost:3000/";
-    commentBody += `Details: ${website}${masterCommit}-${masterCommit}`;
+    commentBody += `Details: ${website}${masterCommit}-${latestCommit}`;
 
     // Create status check
     try {
