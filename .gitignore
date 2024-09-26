@@ -1,5 +1,6 @@
 # Custom ignore result files
 website/
+config/
 
 # Logs
 logs
