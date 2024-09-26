@@ -1,7 +1,8 @@
 # Custom ignore result files
 website/
 config/
-
+key.pem
+server-key.pem
 # Logs
 logs
 *.log

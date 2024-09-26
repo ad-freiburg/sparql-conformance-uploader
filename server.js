@@ -5,7 +5,7 @@ const path = require("path");
 const fs = require("fs");
 const fsPromises = require("fs").promises; 
 const bzip2 = require("./bz2.js");
-const API_KEY = fs.readFileSync("../api-key.pem", "utf8");
+const API_KEY = fs.readFileSync(config.get("severKeyPath"), "utf8");
 // Set up express server
 const express = require("express");
 const bodyParser = require("body-parser");
@@ -226,7 +226,6 @@ async function handlePullRequests(req, res) {
     const prNumber = req.headers["pr-number"];
     const repo = "qlever";
     var { commentBody, desc } = buildBodyAndDescription(resultData);
-    config.get(websiteAddress);
     const website = config.get("websiteAddress");
     commentBody += `Details: ${website}${masterCommit}-${latestCommit}`;
 
