@@ -20,8 +20,8 @@ function compare(latestResult, olderResult) {
     const allKeys = new Set([...Object.keys(latestResult), ...Object.keys(olderResult)]);
     // olderResult to latestResult. Example pToF: olderResult: Passed to latestResult: Failed
     var differencesBetweenResults = {
-                                        "merge": false,
-                                        "changes": false,
+                                        "isMergeable": false,
+                                        "hasChanges": false,
                                         "pToF": [],
                                         "pToI": [],
                                         "pToN": [],
@@ -67,7 +67,7 @@ function compare(latestResult, olderResult) {
 
         if (key in latestResult && key in olderResult) {
             if (latestResult[key]["status"] != olderResult[key]["status"]) {
-                differencesBetweenResults.changes = true;
+                differencesBetweenResults.hasChanges = true;
                 switch (olderResult[key]["status"]) {
                     case "Passed":
                         matchStatus(key, latestResult[key]["status"], "p", differencesBetweenResults);
@@ -84,7 +84,7 @@ function compare(latestResult, olderResult) {
                 }
             }
         } else if (key in latestResult) {
-            differencesBetweenResults.changes = true;
+            differencesBetweenResults.hasChanges = true;
             switch (latestResult[key]["status"]) {
                 case "Passed":
                     differencesBetweenResults["addedP"].push(key);
@@ -100,12 +100,12 @@ function compare(latestResult, olderResult) {
                     break;
             }
         } else {
-            differencesBetweenResults.changes = true;
+            differencesBetweenResults.hasChanges = true;
             differencesBetweenResults["deleted"].push(key);
         }
     }
     if (differencesBetweenResults["pToF"].length == 0 && differencesBetweenResults["iToF"].length == 0) {
-        differencesBetweenResults["merge"] = true;
+        differencesBetweenResults["isMergeable"] = true;
     }
     return differencesBetweenResults;
 }
