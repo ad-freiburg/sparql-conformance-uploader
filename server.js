@@ -29,6 +29,7 @@ const compare = require("./compare");
 
 function setCurrentMaster(sha) {
   const filePath = path.join(__dirname, "db.json");
+  console.log(filePath);
   const data = { "master" : sha}
   const jsonString = JSON.stringify(data, null, 2);
   fs.writeFile(filePath, jsonString, "utf8", (err) => {
@@ -198,11 +199,6 @@ async function writePRComment(octokit, prNumber, commit, commentBody) {
   const commentByBot = comments.find(comment => 
     comment.user.login === config.get("commentAuthor")
   );
-
-  comments.forEach(comment => {
-    console.log(`Comment by ${comment.user.login}: ${comment.body}`);
-    console.log(`Comment ID: ${comment.id}`);
-  });
   
   if (commentByBot) {
     const commentId = commentByBot.id;
@@ -216,7 +212,7 @@ async function writePRComment(octokit, prNumber, commit, commentBody) {
     } catch (error) {
       console.error("Failed to delete the comment:", error);
     }
-    console.log(`Found comment by ${commentByBot.user.login} with ID: ${commentByBot}`);
+    console.log(`Found comment by ${commentByBot.user.login} with ID: ${commentByBot.id}`);
   } else {
     console.log("Comment not found.");
   }
@@ -288,23 +284,23 @@ async function triggerGithubApp(request){
 
   const commit = request.headers["sha"];
   const event = request.headers["event"];
-
+  var comment = "Current master was not specified.";
   const masterCommit = await getCurrentMaster();
+  console.log(masterCommit);
   if (masterCommit) {
+    console.log("RUN");
     const masterResultData = await decompressBz2(path.join(__dirname, resultDir, `${masterCommit}.json.bz2`));
     const latestResultData = await decompressBz2(path.join(__dirname, resultDir, `${commit}.json.bz2`));
     const resultData = compare(masterResultData, latestResultData);
     const { commentBody, summary } = buildBodyAndSummary(resultData, masterCommit, commit);
-  
+    comment = commentBody; 
     const conclusion = resultData.isMergeable ? "success" : "failure";
     await setCheckRun(octokit, owner, repo, commit, conclusion, summary, commentBody);
-  } else {
-    const commentBody = "Current master was not specified.";
   }
 
   if (event == "pull_request") {
     const prNumber = request.headers["pr-number"];
-    await writePRComment(octokit, prNumber, commit, commentBody);
+    await writePRComment(octokit, prNumber, commit, comment);
   } else {
     setCurrentMaster(commit);
   }
