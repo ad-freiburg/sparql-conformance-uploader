@@ -18,23 +18,29 @@ Docker or NPM.
 
 5. Activate an Event, we only need it to get the installation ID.
 
-6. Use ***"only installed on this account"*** and select your qlever repository.
+6. Install only on this account.
 
 7. Generate a private key, put the downloaded key into the upload-server directory and edit the config to use the key.
 
-8. Get the installation ID and the AppId from the GitHub-App settings and edit the config.
+8. Go to install app, choose your account, select your qlever repository.
 
-9. Create a key to make the upload of files more secure, save it in the upload-server directory and edit the config.
+9. Get the AppId from the GitHub-App settings
 
-10. When you are done with the config rename it (to for example config).
+10. Goto the Advanced settings, under Recent Deliveries you will see a "installation.created" click it and get the installation ID from the payload  and edit the config.
 
-11. Push the workflow files to your qlever repository.
+11. Create a key to make the upload of files more secure, save it in the upload-server directory and edit the config.
 
-12. Create a new Action Secret for the server key you created, called SERVER_KEY.
+12. You need to set the author name (name of the bot writing the comment) in the config, the name should be the last part of the settings url + **[bot]** (example: https://github.com/settings/apps/conformance-test ***commentAuthor="conformance-test[bot]"***)
 
-13. Create a new Action Secret for the server url you will use, called SERVER_URL.
+13. When you are done with the config rename it (to for example "config.json").
 
-14. Either you setup the first result file yourself or you do a commit to the master/main branch, after that everything should work.
+14. Push the workflow files to your qlever repository.
+
+15. Create a new Action Secret for the server key you created, called SERVER_KEY.
+
+16. Create a new Action Secret for the server url you will use, called SERVER_URL.
+
+17. Either you setup the first result file yourself or you do a commit to the master/main branch, after that everything should work.
 
 
 ## Starting the server
