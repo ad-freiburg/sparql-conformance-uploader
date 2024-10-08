@@ -14,11 +14,11 @@ Docker or NPM.
 
 3. Create the GitHub App [here](https://github.com/settings/apps). Set it up how you like it.
 
-4. Permissions needed: **Check:** Read & Write, **Issues:** Read & Write, **Pull Requests:** Read & Write.
+4. Permissions needed: ***Check:*** Read & Write, ***Issues:*** Read & Write, ***Pull Requests:*** Read & Write.
 
 5. Activate an Event, we only need it to get the installation ID.
 
-6. Use **"only installed on this account"** and select your qlever repository.
+6. Use ***"only installed on this account"*** and select your qlever repository.
 
 7. Generate a private key, put the downloaded key into the upload-server directory and edit the config to use the key.
 
@@ -33,6 +33,8 @@ Docker or NPM.
 12. Create a new Action Secret for the server key you created, called SERVER_KEY.
 
 13. Create a new Action Secret for the server url you will use, called SERVER_URL.
+
+14. Either you setup the first result file yourself or you do a commit to the master/main branch, after that everything should work.
 
 
 ## Starting the server
@@ -56,12 +58,12 @@ The server will be reachable on the port 3000 of your machine.
 -v /Users/username/Desktop/project/results:/usr/src/app/results
 ```
 
-This mounts your directory (which is the first path, do not change the second path) to the results directory used by the server.
+This mounts your directory (which is the first path, do ***not*** change the second path) to the results directory used by the server.
 
 Set it to the directory containing the result files, which you already used for the website server.
 
 
-Set the NODE_ENV to the name you used for the config (Here I renamed it to config).
+Set the NODE_ENV to the name you used for the config (In this example I renamed it to config).
 
 
 

@@ -5,6 +5,7 @@
     "githubKeyPath": "./key.pem",
     "githubOwner": "Max",
     "githubInstallationID": 0,
+    "commentAuthor": "qlever-sparql-compliance-check[bot]",
     "pathToResultFiles": "output/",
     "websiteAddress": "http://localhost:3000/"
 }

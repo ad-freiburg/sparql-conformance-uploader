@@ -196,7 +196,7 @@ async function writePRComment(octokit, prNumber, commit, commentBody) {
   
   // Find last comment by bot
   const commentByBot = comments.find(comment => 
-    comment.user.login === "qlever-sparql-compliance-check[bot]"
+    comment.user.login === config.get("commentAuthor")
   );
 
   comments.forEach(comment => {
@@ -290,13 +290,18 @@ async function triggerGithubApp(request){
   const event = request.headers["event"];
 
   const masterCommit = await getCurrentMaster();
-  const masterResultData = await decompressBz2(path.join(__dirname, resultDir, `${masterCommit}.json.bz2`));
-  const latestResultData = await decompressBz2(path.join(__dirname, resultDir, `${commit}.json.bz2`));
-  const resultData = compare(masterResultData, latestResultData);
-  const { commentBody, summary } = buildBodyAndSummary(resultData, masterCommit, commit);
+  if (masterCommit) {
+    const masterResultData = await decompressBz2(path.join(__dirname, resultDir, `${masterCommit}.json.bz2`));
+    const latestResultData = await decompressBz2(path.join(__dirname, resultDir, `${commit}.json.bz2`));
+    const resultData = compare(masterResultData, latestResultData);
+    const { commentBody, summary } = buildBodyAndSummary(resultData, masterCommit, commit);
+  
+    const conclusion = resultData.isMergeable ? "success" : "failure";
+    await setCheckRun(octokit, owner, repo, commit, conclusion, summary, commentBody);
+  } else {
+    const commentBody = "Current master was not specified.";
+  }
 
-  const conclusion = resultData.isMergeable ? "success" : "failure";
-  await setCheckRun(octokit, owner, repo, commit, conclusion, summary, commentBody);
   if (event == "pull_request") {
     const prNumber = request.headers["pr-number"];
     await writePRComment(octokit, prNumber, commit, commentBody);
