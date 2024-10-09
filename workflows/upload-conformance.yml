@@ -10,10 +10,11 @@ on:
 
 jobs:
   upload:
+    env:
+          SERVER_URL: ${{ secrets.CONFORMANCE_UPLOAD_SERVER_URL }}
+          API_KEY: ${{ secrets.CONFORMANCE_UPLOAD_SERVER_KEY }}
     runs-on: ubuntu-latest
-    if: >
-      github.event.workflow_run.event == 'pull_request' &&
-      github.event.workflow_run.conclusion == 'success'
+    if: github.event.workflow_run.conclusion == 'success'
     steps:
       - name: 'Download artifact'
         uses: actions/github-script@v6
@@ -40,6 +41,8 @@ jobs:
             fs.writeFileSync('${{github.workspace}}/conformance-report.zip', Buffer.from(download.data));
       - run: unzip conformance-report.zip
       # Read the metadata into environment variables.
+      - name: "Read github event"
+        run: echo "github_event=`cat event`" >> $GITHUB_ENV
       - name: "Read PR number"
         run: echo "pr_number=`cat pr`" >> $GITHUB_ENV
       - name: "Read Github Ref"
@@ -54,8 +57,5 @@ jobs:
         # be overwritten. We then move all the files back into the working
         # directory such that Codecov will pick them up properly.
       - name: "Submit data to server"
-        env:
-                SERVER_URL: ${{ secrets.SERVER_URL }}
-                API_KEY: ${{ secrets.SERVER_KEY }}
         run: |
-            curl -H "x-api-key: $API_KEY" -H "event: ${{github.event.workflow_run.event}}" -H "sha: ${{env.commit_sha}}" -H "pr-number: ${{env.pr_number}}" -H "repo: ${{env.original_github_repository}}" -F "file=@${{env.commit_sha}}.json.bz2" $SERVER_URL/upload
+            curl -H "x-api-key: $API_KEY" -H "event: ${{env.github_event}}" -H "sha: ${{env.commit_sha}}" -H "pr-number: ${{env.pr_number}}" -H "repo: ${{env.original_github_repository}}" -F "file=@${{env.commit_sha}}.json.bz2" $SERVER_URL/upload

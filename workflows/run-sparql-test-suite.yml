@@ -14,13 +14,32 @@ jobs:
           compiler-version: 16
           build-type: Release
           cmake-flags: "-DCMAKE_C_COMPILER=clang-16 -DCMAKE_CXX_COMPILER=clang++-16"
-
+          SERVER_URL: ${{ secrets.CONFORMANCE_UPLOAD_SERVER_URL }}
+          API_KEY: ${{ secrets.CONFORMANCE_UPLOAD_SERVER_KEY }}
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
       with:
         submodules: "recursive"
         path: qlever-code
+    - name: Test upload server and GitHub App authentication
+      run: |
+          echo '{ "test": "test" }' > test.json
+          response=$(curl -s -o temp_response.txt -w "%{http_code}" \
+            -H "x-api-key: $API_KEY" \
+            -H "event: ${{ github.event_name }}" \
+            -H "sha: ${{ github.sha }}" \
+            -H "test: test" \
+            -F "file=@${{ github.workspace }}/test.json" \
+            $SERVER_URL/upload
+
+          echo "Server response:"
+          cat temp_response.txt
+          echo "HTTP Status: $response"
+          if [ "$response" -eq 400 ]; then
+            echo "Server responded with status 400. Failing the workflow."
+            exit 1
+          fi
     - name: Checkout sparql-test-suite-files
       uses: actions/checkout@v3
       with:
@@ -30,7 +49,7 @@ jobs:
       uses: actions/checkout@v3
       with:
         repository: "SIRDNARch/qlever-conformance-tests"
-        token: ${{ secrets.REPO_ACCESS_TOKEN }}
+        token: ${{ secrets.CONFORMANCE_REPO_ACCESS_TOKEN }}
         path: qlever-test-suite
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -52,8 +71,10 @@ jobs:
       run: mkdir ${{github.workspace}}/qlever-code/build
     - name: Configure CMake
       run: cmake -S ${{github.workspace}}/qlever-code/ -B ${{github.workspace}}/qlever-code/build ${{env.cmake-flags}} -DCMAKE_BUILD_TYPE=${{env.build-type}} -DLOGLEVEL=INFO -DUSE_PARALLEL=false
-    - name: Build
-      run: cmake --build ${{github.workspace}}/qlever-code/build --config ${{env.build-type}} -- -j $(nproc)
+    - name: Build IndexBuilderMain
+      run: cmake --build ${{github.workspace}}/qlever-code/build --target IndexBuilderMain --config ${{env.build-type}} -- -j $(nproc)
+    - name: Build ServerMain
+      run: cmake --build ${{github.workspace}}/qlever-code/build --target ServerMain  --config ${{env.build-type}} -- -j $(nproc)
     - name: Execute test suite
       run: |
           cd qlever-test-suite
@@ -61,30 +82,17 @@ jobs:
           python testsuite.py extract
           python testsuite.py ${{ github.sha }}
           cd ..
-# Only upload directly if this is not a pull request. In this
-# case we are on the master branch and have access to the token.
-    - name: "Submit data to server"
-      if: github.event_name != 'pull_request'
-      env:
-              SERVER_URL: ${{ secrets.SERVER_URL }}
-              API_KEY: ${{ secrets.SERVER_KEY }}
-      run: |
-          curl -H "x-api-key: $API_KEY" -H "event: ${{github.event_name}}" -H "sha: ${{github.sha}}" -F "file=@${{github.workspace}}/qlever-test-suite/results/${{ github.sha }}.json.bz2" $SERVER_URL/upload
-
-# For a pull request we store the file as well as some information
-# about this PR (number, how to check it out, etc.) and upload it as an artifact
-    - name: Save PR number and coverage file in same directory
-      if: github.event_name == 'pull_request'
-      # Note: If you change any of the filenames here, you also have to change them in `upload-coverage.yml`
+    - name: Save workflow information and conformance result file in same directory
+      # Note: If you change any of the filenames here, you also have to change them in `upload-conformance.yml`
       run : |
         mkdir -p conformance-report
+        echo ${{ github.event_name }} > ./conformance-report/event
         echo ${{ github.event.number }} > ./conformance-report/pr
         echo ${{ github.repository }} > ./conformance-report/github_repository
         echo ${GITHUB_REF} > ./conformance-report/github_ref
         echo ${{github.event.pull_request.head.sha}} > ./conformance-report/sha
         mv ${{ github.workspace}}/qlever-test-suite/results/${{ github.sha }}.json.bz2 conformance-report/${{ github.event.pull_request.head.sha }}.json.bz2
     - name: Upload coverage artifact
-      if: github.event_name == 'pull_request'
       uses: actions/upload-artifact@v3
       with:
         name: conformance-report
