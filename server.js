@@ -1,7 +1,7 @@
 const fs = require("fs");
 // Set up config
 const config = JSON.parse(fs.readFileSync("config.json", "utf8"));
-const resultDir = config["pathToResultFiles"];
+const resultDir = "results";
 const website = config["UIwebsiteAddress"];
 const checkName = config["nameOfTheCheck"];
 const checkRunningTitle = "Running SPARQL Test Suite";
@@ -27,16 +27,7 @@ const owner = config["githubRepositoryOwner"];
 const repo = config["repositoryName"];;
 const installationId = config["githubInstallationID"];
 const privateKey = fs.readFileSync("./keys/" + config["githubKeyFileName"], "utf8");
-const { Octokit } = require("@octokit/rest");
-const { createAppAuth } = require("@octokit/auth-app");
-const octokit = new Octokit({
-  authStrategy: createAppAuth,
-  auth: {
-    appId,
-    privateKey,
-    installationId,
-  },
-});
+let octokit = null;
 
 // Include function to compare two test results
 const compare = require("./compare");
@@ -62,7 +53,7 @@ async function readFile(filePath) {
     return data;
   } catch (err) {
     console.error("Error reading the file:", err);
-    throw err;
+    return null;
   }
 }
 
@@ -179,7 +170,7 @@ function buildBodyAndSummary(comparisonData, masterCommit, latestCommit) {
   }
   commentBody += `Details: ${website}`
   if(masterCommit) {
-    commentBody += `${masterCommit}-${latestCommit}`
+    commentBody += `${latestCommit}-${masterCommit}`
   }
   return { commentBody, summary };
 }
@@ -188,9 +179,26 @@ function buildBodyAndSummary(comparisonData, masterCommit, latestCommit) {
   Github App implementations 
 */
 
+async function getOctokit() {
+  if(!octokit) {
+    const { Octokit } = require("@octokit/rest");
+    const { createAppAuth } = await import("@octokit/auth-app");
+    octokit = new Octokit({
+      authStrategy: createAppAuth,
+      auth: {
+        appId,
+        privateKey,
+        installationId,
+      },
+    });
+  }
+  return octokit;
+}
+
 async function verifyGithubAuth(installationId) {
   try {
     // Fetch repositories accessible by the installation
+    const octokit = await getOctokit();
     const response = await octokit.rest.apps.listReposAccessibleToInstallation({
       installation_id: installationId,
     });
@@ -205,6 +213,7 @@ async function verifyGithubAuth(installationId) {
 
 async function writePRComment(prNumber, commit, commentBody) {
   // DELETE previous comment
+  const octokit = await getOctokit();
   const { data: comments } = await octokit.issues.listComments({
     owner: owner,
     repo: repo,
@@ -246,6 +255,7 @@ async function writePRComment(prNumber, commit, commentBody) {
 };
 
 async function setCheckRun(owner, repo, commit, conclusion, checkSummary, checkText) {
+  const octokit = await getOctokit();
   try {
     const checkRun = await octokit.rest.checks.create({
       owner,
@@ -292,7 +302,7 @@ async function triggerGithubApp(request){
   if (masterCommit) {
      masterResultData = await decompressBz2(path.join(__dirname, resultDir, `${masterCommit}.json.bz2`));
   }
-  const resultData = compare(masterResultData, latestResultData);
+  const resultData = compare(latestResultData, masterResultData);
   const { commentBody, summary } = buildBodyAndSummary(resultData, masterCommit, commit);
   const conclusion = resultData.isMergeable ? "success" : "failure";
   await setCheckRun(owner, repo, commit, conclusion, summary, commentBody);
@@ -313,6 +323,11 @@ async function triggerTest() {
   var message = "";
   const filePath = path.join(__dirname, "dummy/test.json");
   const data = await readFile(filePath);
+  if (!data) {
+    console.log("No test.json file");
+    return;
+  }
+  
   const json = JSON.parse(data);
   if(json.test === "test") {
     uploadSuccess = true;
@@ -321,26 +336,31 @@ async function triggerTest() {
     message += "Upload was NOT successful and ";
   }
 
-  await fs.unlink(filePath);
+  fs.unlink(filePath, (err) => {
+    if (err) {
+        console.log("Failed to delete:" + filePath + ": " + err);
+    }
+  }); 
 
   // Ensure authentication
   const verified = await verifyGithubAuth(installationId);
   if(verified) {
-    message += "GitHub APP verification was successful!";
+    message += "GitHub APP verification was successful!\n";
   } else {
-    message += "GitHub APP verification was NOT successful!";
+    message += "GitHub APP verification was NOT successful!\n";
   }
   if(verified && uploadSuccess) {
     status = 200;
   }
-  return status, message;
+  return {status, message};
 }
 
 // Storage handling
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
+    console.log(req.headers["test"])
     let uploadDir = "results/";
-    if (req.headers["test"] && req.headers["test"] === "dummy") {
+    if (req.headers["test"] && req.headers["test"] === "test") {
       uploadDir = "dummy/";
     }
     if (!fs.existsSync(uploadDir)){
@@ -379,10 +399,10 @@ const authenticate = (req, res, next) => {
 // Endpoint to handle file upload with auth
 app.post("/upload", authenticate, upload.single("file"), uploadErrorHandler, async (req, res) => {
   if (req.headers["test"] && req.headers["test"] === "test") {
-    const {status, message} = triggerTest();
+    const {status, message} = await triggerTest();
     res.status(status).send(message);
   } else {
-    const commit = request.headers["sha"];
+    const commit = req.headers["sha"];
     res.status(200).send("File uploaded successfully for commit: " + commit);
     try {
       await triggerGithubApp(req);

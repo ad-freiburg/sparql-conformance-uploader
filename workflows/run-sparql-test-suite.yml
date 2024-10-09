@@ -31,13 +31,13 @@ jobs:
             -H "sha: ${{ github.sha }}" \
             -H "test: test" \
             -F "file=@${{ github.workspace }}/test.json" \
-            $SERVER_URL/upload
+            $SERVER_URL/upload)
 
           echo "Server response:"
           cat temp_response.txt
           echo "HTTP Status: $response"
-          if [ "$response" -eq 400 ]; then
-            echo "Server responded with status 400. Failing the workflow."
+          if [ "$response" -gt 200 ]; then
+            echo "Server did not respond with status 200. Failing the workflow."
             exit 1
           fi
     - name: Checkout sparql-test-suite-files
@@ -82,7 +82,7 @@ jobs:
           python testsuite.py extract
           python testsuite.py ${{ github.sha }}
           cd ..
-    - name: Save workflow information and conformance result file in same directory
+    - name: Save workflow information
       # Note: If you change any of the filenames here, you also have to change them in `upload-conformance.yml`
       run : |
         mkdir -p conformance-report
@@ -90,6 +90,14 @@ jobs:
         echo ${{ github.event.number }} > ./conformance-report/pr
         echo ${{ github.repository }} > ./conformance-report/github_repository
         echo ${GITHUB_REF} > ./conformance-report/github_ref
+    - name: Save SHA and conformance report if it is a master commit.
+      if: github.event_name == 'push'
+      run : |
+        echo ${{github.sha}} > ./conformance-report/sha
+        mv ${{ github.workspace}}/qlever-test-suite/results/${{ github.sha }}.json.bz2 conformance-report/${{ github.sha }}.json.bz2
+    - name: Save SHA and conformance report if it is a PR.
+      if: github.event_name == 'pull_request'
+      run : |
         echo ${{github.event.pull_request.head.sha}} > ./conformance-report/sha
         mv ${{ github.workspace}}/qlever-test-suite/results/${{ github.sha }}.json.bz2 conformance-report/${{ github.event.pull_request.head.sha }}.json.bz2
     - name: Upload coverage artifact
