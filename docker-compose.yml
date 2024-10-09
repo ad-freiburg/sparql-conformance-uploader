@@ -1,0 +1,13 @@
+services:
+  app:
+    image: sparql-conformance-uploader
+    build:
+      context: .
+    container_name: sparql-conformance-uploader
+    ports:
+      - "3000:3000"
+    volumes:
+      - /home/rico/Desktop/master-project/Test/results:/results            # Mount the results directory
+      - /home/rico/Desktop/master-project/Test/keys:/keys               # Mount the keys directory (place github and server key in the directory)
+      - /home/rico/Desktop/master-project/Test/qlever-conformance-upload-server/config.json:/config.json    # Mount config.json for editing
+      - /home/rico/Desktop/master-project/Test/qlever-conformance-upload-server/db.json:/db.json            # Mount db.json for editing

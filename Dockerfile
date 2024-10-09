@@ -1,18 +1,13 @@
 FROM node:18
 
-WORKDIR /usr/src/app
+WORKDIR /
 
-# Copy package.json and package-lock.json
-COPY package*.json ./
+RUN mkdir -p /keys
 
-# Install the dependencies
-RUN npm install
-
-# Copy the rest of the application files
 COPY . .
 
-# Expose the port on which your app will run (if any)
+RUN npm install
+
 EXPOSE 3000
 
-# Start the application
 CMD [ "node", "server.js" ]

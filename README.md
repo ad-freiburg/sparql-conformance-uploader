@@ -48,12 +48,12 @@ Docker or NPM.
 ### Using Docker
 
 ```
-docker build -t conformance-app . 
+docker build -t sparql-conformance-uploader . 
 ```
 
 
 ```
-docker run -e NODE_ENV=config -p 3000:3000 -v /home/user/Desktop/docker-tests/results:/usr/src/app/results conformance-app
+docker run --name sparql-conformance-uploader -d -p PORT:3000 -v your_path:/results sparql-conformance-uploader
 ```
 
 Explanation:
