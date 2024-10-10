@@ -4,7 +4,7 @@ GitHub App and file server to use the [qlever-conformance-tests](https://github.
 
 ## Prerequisites
 
-Docker or NPM.
+Docker, Docker-compose.
 
 ## Setup
 
@@ -19,6 +19,10 @@ Docker or NPM.
 3. Fill in the config. Explained [here](#setting-up-the-config-file).
 
 3. Setup the GitHub workflows. Explained [here](#set-up-github-workflow).
+
+4. Configure the docker-compose file. Explained [here](#configure-docker-compose).
+
+5. Start docker-compose [here](#start-docker-compose). 
 
 ## Creating the GitHub App
 1. Create the GitHub App [here](https://github.com/settings/apps).
@@ -38,7 +42,7 @@ Docker or NPM.
 9. Select your repository and press install.
 
 10. That is it, you created the GitHub App, we will need it later to fill in the config.
-
+compose
 ## Create a key for the file upload
 1. Generate a secure key.
 1. Create a server-key.pem file containing the key, which we will use for the file upload.
@@ -68,47 +72,38 @@ When you are in the general app settings ([here](https://github.com/settings/app
 2. Create a new **repository secret** and call it CONFORMANCE_UPLOAD_SERVER_KEY, in the secret should be the key you created for the upload server.
 2. Thats it for the GitHub workflow.
 
+## Configure docker compose
+1. Set the port, to a port accessible from the outside.
+2. Set the first PATH to the path containing the conformance result files. (The same should be mounted to the website server).
+1. Create a directory for the two keys (GitHub App and Upload Server) and put both .pem files there.
+1. Set the second PATH to the path of the folder you just created containing the two key files.
+1. Set the third PATH to the path of the directory containing the config.json and the db.json, if you didn't move it, it should be in the same directory as the docker-compose.yml.
 
+## Start docker compose
+Go to the directory containing the docker-compose.yml.
 
-
-## Starting the server
-
-### Using Docker
-
+If you run it for the first time use to build the image.
 ```
-docker build -t sparql-conformance-uploader . 
-```
-
-
-```
-docker run --name sparql-conformance-uploader -d -p PORT:3000 -v your_path:/results sparql-conformance-uploader
-```
-
-Explanation:
-
-The server will be reachable on the port 3000 of your machine.
-
-```
--v /Users/username/Desktop/project/results:/usr/src/app/results
+docker-compose up --build -d
 ```
 
-This mounts your directory (which is the first path, do ***not*** change the second path) to the results directory used by the server.
+If you have already build the image just use.
 
-Set it to the directory containing the result files, which you already used for the website server.
-
-
-Set the NODE_ENV to the name you used for the config (In this example I renamed it to config).
-
-
-
-### Using NPM
-  
 ```
-npm install
-```
-  
-```
-node server.js
+docker-compose up --build -d
 ```
 
-This will make the server reachable at http://localhost:3000/  
+You can remove the ***-d*** if you do not want to start it in the detached mode.
+
+To ***shut down*** use
+
+```
+docker-compose down
+```
+
+Use this to access the interactive shell of the docker container:
+
+```
+docker-compose exec app /bin/sh
+```
+

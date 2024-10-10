@@ -1,6 +1,6 @@
 const fs = require("fs");
 // Set up config
-const config = JSON.parse(fs.readFileSync("config.json", "utf8"));
+const config = JSON.parse(fs.readFileSync("config/config.json", "utf8"));
 const resultDir = "results";
 const website = config["UIwebsiteAddress"];
 const checkName = config["nameOfTheCheck"];
@@ -33,15 +33,14 @@ let octokit = null;
 const compare = require("./compare");
 
 function setCurrentMaster(sha) {
-  const filePath = path.join(__dirname, "db.json");
-  console.log(filePath);
+  const filePath = path.join(__dirname, "config/db.json");
   const data = { "master" : sha}
   const jsonString = JSON.stringify(data, null, 2);
   fs.writeFile(filePath, jsonString, "utf8", (err) => {
       if (err) {
-          console.error("Error writing file:", err);
+          console.error("Error writing file db.json:", err);
       } else {
-          console.log("Successfully wrote file");
+          console.log("Successfully wrote file db.json");
       }
   });
 }
@@ -324,7 +323,7 @@ async function triggerTest() {
   const filePath = path.join(__dirname, "dummy/test.json");
   const data = await readFile(filePath);
   if (!data) {
-    console.log("No test.json file");
+    console.log("No test.json file, upload failed!");
     return;
   }
   
@@ -358,7 +357,6 @@ async function triggerTest() {
 // Storage handling
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    console.log(req.headers["test"])
     let uploadDir = "results/";
     if (req.headers["test"] && req.headers["test"] === "test") {
       uploadDir = "dummy/";

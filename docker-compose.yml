@@ -9,4 +9,4 @@ services:
     volumes:
       - PATH:/results            # Mount the results directory
       - PATH:/keys               # Mount the keys directory (place github and server key in the directory)
-      - PATH:/config.json    # Mount config directory for editing
+      - PATH:/config   # Mount config directory for editing
