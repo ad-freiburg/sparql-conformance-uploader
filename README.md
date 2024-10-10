@@ -12,15 +12,15 @@ Docker or NPM.
 
 2. Follow the steps on the [website repository](https://github.com/SIRDNARch/qlever-conformance-website). (Note that the mounted directory should be the same as the mounted directory here.)
 
-3. Create the GitHub App. Explained [here](#app).
+3. Create the GitHub App. Explained [here](#creating-the-github-app).
 
-3. Make the upload secure. Explained [here](#key).
+3. Make the upload secure. Explained [here](#create-a-key-for-the-file-upload).
 
-3. Fill in the config. Explained [here](#config).
+3. Fill in the config. Explained [here](#setting-up-the-config-file).
 
-3. Setup the GitHub workflows. Explained [here](#workflows).
+3. Setup the GitHub workflows. Explained [here](#set-up-github-workflow).
 
-## Creating the GitHub App {#app}
+## Creating the GitHub App
 1. Create the GitHub App [here](https://github.com/settings/apps).
 
 2. Homepage URL and the Webhook URL (Do not disable Events) can be placeholders (for example http://qlever.cs.uni-freiburg.de)
@@ -39,12 +39,12 @@ Docker or NPM.
 
 10. That is it, you created the GitHub App, we will need it later to fill in the config.
 
-## Create a key for the file upload. {#key}
+## Create a key for the file upload
 1. Generate a secure key.
 1. Create a server-key.pem file containing the key, which we will use for the file upload.
 1. We will need this key later when we setup our GitHub workflows.
 
-## Setting up the config file {#config}
+## Setting up the config file
 1. ***severKeyFileName***: Set it to the name of the file containing your generated key.
 2. ***githubKeyFileName***: Set it to the name of the file containing the private key for the GitHub App.
 3. ***repositoryName***: Set it to the name of the repository you want to work with. (usually qlever)
@@ -61,7 +61,7 @@ Open the GitHub App settings ([here](https://github.com/settings/apps)), on the 
 ### How to set the commentAuthor correctly
 When you are in the general app settings ([here](https://github.com/settings/apps)) of your app the url should include the name of your app, copy it and add ***[bot]*** to the end so for example: https://github.com/settings/apps/conformance-test would be "conformance-test[bot]"
 
-## Set up GitHub workflow {#workflows}
+## Set up GitHub workflow
 1. Upload the two workflows into your respositories .github/workflows directory.
 2. Go to your repository settings, go to **Secrets and variables** and **Actions**.
 2. Create a new **repository secret** and call it CONFORMANCE_UPLOAD_SERVER_URL, in the secret should be the address of the upload server.
