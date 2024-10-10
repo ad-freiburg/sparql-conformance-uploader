@@ -387,7 +387,7 @@ function uploadErrorHandler(err, req, res, next) {
 // File upload auth
 const authenticate = (req, res, next) => {
   const apiKey = req.headers["x-api-key"];
-  if (apiKey && apiKey === API_KEY) {
+  if (apiKey && apiKey.trim() === API_KEY.trim()) {
     next();
   } else {
     res.status(403).send("Forbidden.");
