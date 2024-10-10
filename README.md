@@ -42,6 +42,37 @@ Docker or NPM.
 
 17. Either you setup the first result file yourself or you do a commit to the master/main branch, after that everything should work.
 
+### Creating the GitHub App
+1. Create the GitHub App [here](https://github.com/settings/apps).
+
+2. Homepage URL and the Webhook URL (Do not disable events) can be placeholders (for example http://qlever.cs.uni-freiburg.de)
+
+2. Permissions needed: ***Check:*** Read & Write, ***Pull Requests:*** Read & Write.
+
+3. You can set up all other options how you like.
+
+6. When you are done press Install Only on this account.
+
+7. Generate a private key and save the downloaded key somewhere, so we can use it later.
+
+8. On the left side click on Install App and find your account press install.
+
+9. Select your repository and press install.
+
+### Create a key for the file upload.
+1. Generate a secure key.
+1. Create a server-key.pem file containing the key, which we will use for the file upload.
+
+### Setting up the config file
+1. ***severKeyFileName***: Set it to the name of the file containing your generated key.
+2. ***githubKeyFileName***: Set it to the name of the file containing the private key for the GitHub App.
+3. ***repositoryName***: Set it to the name of the repository you want to work with. (usually qlever)
+4. ***githubRepositoryOwner***: Set it to the name of the owner of the repository.
+5.  ***githubInstallationID***: Set it to the GitHub installation ID of you repository. I explain below how to find it.
+6.  ***appId***: Set it to the GitHub App ID. You can find it in the General App settings
+7.  ***commentAuthor***: Set it to the name of your app + "[bot]" (more information below)
+8.   ***UIwebsiteAddress***: Set it to the address of the UI website which will visualize the results.
+9.  ***nameOfTheCheck***: Set it to the name you want the Check to have.
 
 ## Starting the server
 
