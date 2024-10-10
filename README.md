@@ -90,7 +90,7 @@ docker-compose up --build -d
 If you have already build the image just use.
 
 ```
-docker-compose up --build -d
+docker-compose up -d
 ```
 
 You can remove the ***-d*** if you do not want to start it in the detached mode.
