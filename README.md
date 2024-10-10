@@ -42,7 +42,8 @@ Docker, Docker-compose.
 9. Select your repository and press install.
 
 10. That is it, you created the GitHub App, we will need it later to fill in the config.
-compose
+
+
 ## Create a key for the file upload
 1. Generate a secure key.
 1. Create a server-key.pem file containing the key, which we will use for the file upload.
@@ -90,7 +91,7 @@ docker-compose up --build -d
 If you have already build the image just use.
 
 ```
-docker-compose up --build -d
+docker-compose up -d
 ```
 
 You can remove the ***-d*** if you do not want to start it in the detached mode.
