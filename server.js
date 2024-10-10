@@ -33,7 +33,7 @@ let octokit = null;
 const compare = require("./compare");
 
 function setCurrentMaster(sha) {
-  const filePath = path.join(__dirname, "config/db.json");
+  const filePath = path.join(__dirname, "/config/", "db.json");
   const data = { "master" : sha}
   const jsonString = JSON.stringify(data, null, 2);
   fs.writeFile(filePath, jsonString, "utf8", (err) => {
@@ -88,7 +88,7 @@ async function decompressBz2(filePath) {
 }
 
 async function getCurrentMaster() {
-  const filePath = path.join(__dirname, "db.json");
+  const filePath = path.join(__dirname, "/config/", "db.json");
   var data = await readFile(filePath);
   var json = JSON.parse(data);
   return json.master;
