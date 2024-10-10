@@ -12,42 +12,20 @@ Docker or NPM.
 
 2. Follow the steps on the [website repository](https://github.com/SIRDNARch/qlever-conformance-website). (Note that the mounted directory should be the same as the mounted directory here.)
 
-3. Create the GitHub App [here](https://github.com/settings/apps). Set it up how you like it.
+3. Create the GitHub App. Explained [here](#app).
 
-4. Permissions needed: ***Check:*** Read & Write, ***Issues:*** Read & Write, ***Pull Requests:*** Read & Write.
+3. Make the upload secure. Explained [here](#key).
 
-5. Activate an Event, we only need it to get the installation ID.
+3. Fill in the config. Explained [here](#config).
 
-6. Install only on this account.
+3. Setup the GitHub workflows. Explained [here](#workflows).
 
-7. Generate a private key, put the downloaded key into the upload-server directory and edit the config to use the key.
-
-8. Go to install app, choose your account, select your qlever repository.
-
-9. Get the AppId from the GitHub-App settings
-
-10. Goto the Advanced settings, under Recent Deliveries you will see a "installation.created" click it and get the installation ID from the payload  and edit the config.
-
-11. Create a key to make the upload of files more secure, save it in the upload-server directory and edit the config.
-
-12. You need to set the author name (name of the bot writing the comment) in the config, the name should be the last part of the settings url + **[bot]** (example: https://github.com/settings/apps/conformance-test ***commentAuthor="conformance-test[bot]"***)
-
-13. When you are done with the config rename it (to for example "config.json").
-
-14. Push the workflow files to your qlever repository.
-
-15. Create a new Action Secret for the server key you created, called SERVER_KEY.
-
-16. Create a new Action Secret for the server url you will use, called SERVER_URL.
-
-17. Either you setup the first result file yourself or you do a commit to the master/main branch, after that everything should work.
-
-### Creating the GitHub App
+## Creating the GitHub App {#app}
 1. Create the GitHub App [here](https://github.com/settings/apps).
 
-2. Homepage URL and the Webhook URL (Do not disable events) can be placeholders (for example http://qlever.cs.uni-freiburg.de)
+2. Homepage URL and the Webhook URL (Do not disable Events) can be placeholders (for example http://qlever.cs.uni-freiburg.de)
 
-2. Permissions needed: ***Check:*** Read & Write, ***Pull Requests:*** Read & Write.
+2. Permissions needed: ***Checks:*** Read & Write, ***Pull Requests:*** Read & Write.
 
 3. You can set up all other options how you like.
 
@@ -59,20 +37,39 @@ Docker or NPM.
 
 9. Select your repository and press install.
 
-### Create a key for the file upload.
+10. That is it, you created the GitHub App, we will need it later to fill in the config.
+
+## Create a key for the file upload. {#key}
 1. Generate a secure key.
 1. Create a server-key.pem file containing the key, which we will use for the file upload.
+1. We will need this key later when we setup our GitHub workflows.
 
-### Setting up the config file
+## Setting up the config file {#config}
 1. ***severKeyFileName***: Set it to the name of the file containing your generated key.
 2. ***githubKeyFileName***: Set it to the name of the file containing the private key for the GitHub App.
 3. ***repositoryName***: Set it to the name of the repository you want to work with. (usually qlever)
 4. ***githubRepositoryOwner***: Set it to the name of the owner of the repository.
 5.  ***githubInstallationID***: Set it to the GitHub installation ID of you repository. I explain below how to find it.
-6.  ***appId***: Set it to the GitHub App ID. You can find it in the General App settings
-7.  ***commentAuthor***: Set it to the name of your app + "[bot]" (more information below)
+6.  ***appId***: Set it to the GitHub App ID. You can find it in the General App settings([here](https://github.com/settings/apps)).
+7.  ***commentAuthor***: Set it to the name of your app + "[bot]" (more information below).
 8.   ***UIwebsiteAddress***: Set it to the address of the UI website which will visualize the results.
 9.  ***nameOfTheCheck***: Set it to the name you want the Check to have.
+
+### How to find the installation ID
+Open the GitHub App settings ([here](https://github.com/settings/apps)), on the left click on the Advanced, under Recent Deliveries you will see a "installation.created" click it and get the installation ID from the payload (4th row of the payload).
+
+### How to set the commentAuthor correctly
+When you are in the general app settings ([here](https://github.com/settings/apps)) of your app the url should include the name of your app, copy it and add ***[bot]*** to the end so for example: https://github.com/settings/apps/conformance-test would be "conformance-test[bot]"
+
+## Set up GitHub workflow {#workflows}
+1. Upload the two workflows into your respositories .github/workflows directory.
+2. Go to your repository settings, go to **Secrets and variables** and **Actions**.
+2. Create a new **repository secret** and call it CONFORMANCE_UPLOAD_SERVER_URL, in the secret should be the address of the upload server.
+2. Create a new **repository secret** and call it CONFORMANCE_UPLOAD_SERVER_KEY, in the secret should be the key you created for the upload server.
+2. Thats it for the GitHub workflow.
+
+
+
 
 ## Starting the server
 
