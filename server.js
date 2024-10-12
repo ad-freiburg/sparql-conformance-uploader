@@ -169,7 +169,7 @@ function buildBodyAndSummary(comparisonData, masterCommit, latestCommit) {
   }
   commentBody += `Details: ${website}`
   if(masterCommit) {
-    commentBody += `${latestCommit}-${masterCommit}`
+    commentBody += `?cur=${latestCommit}&prev=${masterCommit}`
   }
   return { commentBody, summary };
 }

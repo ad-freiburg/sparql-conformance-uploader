@@ -14,32 +14,12 @@ jobs:
           compiler-version: 16
           build-type: Release
           cmake-flags: "-DCMAKE_C_COMPILER=clang-16 -DCMAKE_CXX_COMPILER=clang++-16"
-          SERVER_URL: ${{ secrets.CONFORMANCE_UPLOAD_SERVER_URL }}
-          API_KEY: ${{ secrets.CONFORMANCE_UPLOAD_SERVER_KEY }}
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
       with:
         submodules: "recursive"
         path: qlever-code
-    - name: Test upload server and GitHub App authentication
-      run: |
-          echo '{ "test": "test" }' > test.json
-          response=$(curl -s -o temp_response.txt -w "%{http_code}" \
-            -H "x-api-key: $API_KEY" \
-            -H "event: ${{ github.event_name }}" \
-            -H "sha: ${{ github.sha }}" \
-            -H "test: test" \
-            -F "file=@${{ github.workspace }}/test.json" \
-            $SERVER_URL/upload)
-
-          echo "Server response:"
-          cat temp_response.txt
-          echo "HTTP Status: $response"
-          if [ "$response" -gt 200 ]; then
-            echo "Server did not respond with status 200. Failing the workflow."
-            exit 1
-          fi
     - name: Checkout sparql-test-suite-files
       uses: actions/checkout@v3
       with:
@@ -48,8 +28,7 @@ jobs:
     - name: Checkout qlever-test-suite
       uses: actions/checkout@v3
       with:
-        repository: "SIRDNARch/qlever-conformance-tests"
-        token: ${{ secrets.CONFORMANCE_REPO_ACCESS_TOKEN }}
+        repository: "ad-freiburg/sparql-conformance"
         path: qlever-test-suite
     - name: Set up Python
       uses: actions/setup-python@v4
