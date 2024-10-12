@@ -48,7 +48,6 @@ jobs:
         run: echo "original_github_repository=`cat github_repository`" >> $GITHUB_ENV;
       - name: "Submit data to server"
         run: |
-            curl -H "x-api-key: $API_KEY" -H "event: ${{env.github_event}}" -H "sha: ${{env.commit_sha}}" -H "pr-number: ${{env.pr_number}}" -H "repo: ${{env.original_github_repository}}" -F "file=@${{env.commit_sha}}.json.bz2" $SERVER_URL/upload
             response=$(curl -s -o temp_response.txt -w "%{http_code}" \
               -H "x-api-key: $API_KEY" \
               -H "event: ${{ env.github_event }}" \
