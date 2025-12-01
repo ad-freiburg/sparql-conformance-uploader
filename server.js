@@ -143,11 +143,11 @@ function buildBodyAndSummary(comparisonData, masterCommit, latestCommit) {
 
   commentBody += `
 ### Overview  
-| Number of Tests | Passed ✅ | Failed ❌| Intended ⚠️| Not tested |
+| Number of Tests | Passed ✅ | Intended ✅ | Failed ❌ | Not tested |
 | --------------- | --------------- | -------------- | -------------- | -------------- |
 `;
   let total = comparisonData.n + comparisonData.p + comparisonData.i + comparisonData.f;
-  commentBody += `| ${total} | ${comparisonData.p} | ${comparisonData.f} | ${comparisonData.i} | ${comparisonData.n} |\n`;
+  commentBody += `| ${total} | ${comparisonData.p} | ${comparisonData.i} | ${comparisonData.f} | ${comparisonData.n} |\n`;
   if(comparisonData.isMergeable){
     commentBody += `
 ### Conformance check passed ✅

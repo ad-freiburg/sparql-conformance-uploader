@@ -4,6 +4,7 @@ function matchStatus(testName, status, oldStatusString, differencesBetweenResult
             differencesBetweenResults[`${oldStatusString}ToP`].push(testName);
             break;
         case "Failed: Intended":
+        case "Intended deviation":
             differencesBetweenResults[`${oldStatusString}ToI`].push(testName);
             break;
         case "Failed":
@@ -54,6 +55,7 @@ function compare(latestResult, olderResult) {
                     differencesBetweenResults["p"] += 1;
                     break;
                 case "Failed: Intended":
+                case "Intended deviation":
                     differencesBetweenResults["i"] += 1;
                     break;
                 case "Failed":
@@ -73,6 +75,7 @@ function compare(latestResult, olderResult) {
                         matchStatus(key, latestResult[key]["status"], "p", differencesBetweenResults);
                         break;
                     case "Failed: Intended":
+                    case "Intended deviation":
                         matchStatus(key, latestResult[key]["status"], "i", differencesBetweenResults);
                         break;
                     case "Failed":
@@ -90,6 +93,7 @@ function compare(latestResult, olderResult) {
                     differencesBetweenResults["addedP"].push(key);
                     break;
                 case "Failed: Intended":
+                case "Intended deviation":
                     differencesBetweenResults["addedI"].push(key);
                     break;
                 case "Failed":
